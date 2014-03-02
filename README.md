@@ -1,4 +1,4 @@
-# GeoPoint
+# GeoPoint [![GoDoc](https://godoc.org/github.com/marcinwyszynski/geopoint?status.png)](https://godoc.org/github.com/marcinwyszynski/geopoint)
 
 Go library to represents geographical point and formulaes to calculate distance to another geographical point. The formula supplied here is Haversine but you can also use your own formula.
 
