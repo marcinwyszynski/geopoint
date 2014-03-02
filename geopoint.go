@@ -5,19 +5,53 @@ import (
 )
 
 const (
-	EARTH_RADIUS_IN_KM = 6371
+	mileInKilometres        = 1.60934         // kilometres -> miles conversion.
+	degToRad                = math.Pi / 180.0 // degrees -> radians conversion.
+	earthRadiusInKilometres = 6371
 )
 
+// Kilometres are units of distance.
+type Kilometres float64
+
+// Miles converts kilometres to miles.
+func (self Kilometres) Miles() Miles {
+	return Miles(self * mileInKilometres)
+}
+
+// Miles are units of distance.
+type Miles float64
+
+// Kilometres converts miles to kilometres.
+func (self Miles) Kilometres() Kilometres {
+	return Kilometres(self * mileInKilometres)
+}
+
 // Formula to calculate distance between two GeoPoints.
-type Formula func(one, two *GeoPoint) float64
+type Formula func(one, two *GeoPoint) Kilometres
+
+// Degrees are units of angular measure.
+type Degrees float64
+
+// Conversion between Degrees and Radians.
+func (self Degrees) Radians() Radians {
+	return Radians(self * degToRad)
+}
+
+// Radians are units of angular measure.
+type Radians float64
+
+// Conversion between Radians and Degrees.
+func (self Radians) Degrees() Degrees {
+	return Degrees(self / degToRad)
+}
 
 // Struct representing GPS coordinates.
 type GeoPoint struct {
-	Latitude, Longitude float64
+	Latitude, Longitude Degrees
 }
 
 // Constructor for a GeoPoint.
-func NewGeoPoint(latitude, longitude float64) *GeoPoint {
+func NewGeoPoint(latitude, longitude Degrees) *GeoPoint {
 	return &GeoPoint{
 		Latitude:  latitude,
 		Longitude: longitude,
@@ -25,27 +59,22 @@ func NewGeoPoint(latitude, longitude float64) *GeoPoint {
 }
 
 // Distance to another GeoPoint.
-func (g *GeoPoint) DistanceTo(another *GeoPoint, f Formula) float64 {
+func (g *GeoPoint) DistanceTo(another *GeoPoint, f Formula) Kilometres {
 	return f(g, another)
 }
 
 // Distance between two GeoPoints using Haversine formula.
-func Haversine(one, two *GeoPoint) float64 {
-	lat1 := toRadians(one.Latitude)
-	lng1 := toRadians(one.Longitude)
-	lat2 := toRadians(two.Latitude)
-	lng2 := toRadians(two.Longitude)
+func Haversine(one, two *GeoPoint) Kilometres {
+	lat1 := one.Latitude.Radians()
+	lng1 := one.Longitude.Radians()
+	lat2 := two.Latitude.Radians()
+	lng2 := two.Longitude.Radians()
 
-	deltaLng := lng2 - lng1
-	deltaLat := lat2 - lat1
-	a := math.Pow((math.Sin(deltaLat/2)), 2.0) + math.Cos(lat1)*
-		math.Cos(lat2)*math.Pow(math.Sin(deltaLng/2), 2.0)
+	deltaLng := float64(lng2 - lng1)
+	deltaLat := float64(lat2 - lat1)
+	a := math.Pow((math.Sin(deltaLat/2)), 2.0) + math.Cos(float64(lat1))*
+		math.Cos(float64(lat2))*math.Pow(math.Sin(deltaLng/2), 2.0)
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1.0-a))
 
-	return EARTH_RADIUS_IN_KM * c
-}
-
-// Helper function to turn degrees into radians.
-func toRadians(degrees float64) float64 {
-	return degrees * math.Pi / 180
+	return Kilometres(earthRadiusInKilometres * c)
 }
